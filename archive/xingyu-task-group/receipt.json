@@ -1,0 +1,9 @@
+{
+  "tag": "xingyu-task-group",
+  "name": "星语 · 任务群聊版",
+  "source_commit": "ab930c6a9eab378b038e9a837c5701e02e8d6cd7",
+  "license": "原版分段双重许可，见 source/LICENSE",
+  "status": "源码归档；旧 Actions APK 附件下载被拒绝，暂不附 APK。",
+  "source_archive": "xingyu-task-group-source.zip",
+  "source_sha256": "cd29e4a5335366285e2ac1806befa74a989c013fd627fd6c67ccb78ab871389f"
+}

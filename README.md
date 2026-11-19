@@ -2,6 +2,18 @@
 
 个人作品与前端修改归档，保存安装包、对应源码及使用/恢复说明。后续项目按各自许可单独说明。
 
+## Chatbox、橘瓣与星语
+
+均为非官方修改版，按各自工程原有许可提供；各工程许可证不由本仓库根目录 LICENSE 替代。
+
+| 项目 | 内容 | 下载与说明 |
+| --- | --- | --- |
+| Chatbox Glass 1.4.5 | 完整源码、移动端构建流程；暂未附 APK | [说明](archive/chatbox-glass-1.4.5/) · [附件](https://github.com/wanwamT/Ash-Workshop/releases/tag/chatbox-glass-1.4.5) |
+| 橘瓣 Liquid Glass 2.2.3 | ARM64 debug APK、对应完整源码 | [说明](archive/orangechat-glass-2.2.3/) · [附件](https://github.com/wanwamT/Ash-Workshop/releases/tag/orangechat-glass-2.2.3) |
+| 星语 · 任务群聊版 | 完整源码；暂未附 APK | [说明](archive/xingyu-task-group/) · [附件](https://github.com/wanwamT/Ash-Workshop/releases/tag/xingyu-task-group) |
+
+源码请下载各发布页专门命名的 **source.zip** 附件，内含完整工程与原许可证。橘瓣、星语旧版采用分段双重许可，含使用人数及商业授权等条件，转发与使用前请阅读原文。
+
 ## Kelivo Glass · 非官方玻璃改版
 
 基于 [Chevey339/Kelivo](https://github.com/Chevey339/kelivo) 的个人修改版。原项目版权归原作者及贡献者；不代表原作者发布、维护或背书。此仓库用于独立保存已签名 APK 和完整对应源码，不包含原私人仓库历史或其他项目。

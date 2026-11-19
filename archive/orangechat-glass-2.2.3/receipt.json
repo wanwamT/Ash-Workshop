@@ -1,0 +1,13 @@
+{
+  "tag": "orangechat-glass-2.2.3",
+  "name": "橘瓣 Liquid Glass 2.2.3",
+  "source_commit": "cfb65d555c1137c85483a0e893d91e5f4d04f180",
+  "license": "原版分段双重许可，见工程 LICENSE",
+  "status": "附原 CI 发布的 ARM64 debug APK，未重新编译。",
+  "source_archive": "orangechat-glass-2.2.3-source.zip",
+  "source_sha256": "d5ce89cda1b4772930f7a37c778cb087617a9503de363aa8145eb6756599e657",
+  "apk": "orangechat-glass-2.2.3-arm64-debug.apk",
+  "apk_sha256": "91facb2a31b25858dec0057336591a87a46d8adb4a32b52b7099d2fb3eead4fe",
+  "build_run": "https://github.com/wanwamT/orangechat/actions/runs/38586145351",
+  "original_release": "https://github.com/wanwamT/orangechat/releases/tag/liquidglass-build-20261014-150947"
+}
