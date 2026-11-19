@@ -1,0 +1,75 @@
+name: Chatbox Glass Android
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Isolate cloud metadata endpoint
+        run: sudo iptables -A OUTPUT -d 169.254.169.254/32 -j REJECT
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Prepare pinned upstream and local changes
+        run: |
+          test -f chatbox/source/package.json
+          cp -a chatbox/source app
+          corepack enable
+      - name: Test native OAuth callback receiver
+        run: |
+          mkdir -p /tmp/ash-oauth-tests
+          javac -encoding UTF-8 -d /tmp/ash-oauth-tests chatbox/native/McpOAuthLoopback.java chatbox/native/McpOAuthLoopbackTest.java
+          java -cp /tmp/ash-oauth-tests xyz.chatboxapp.ashglass.McpOAuthLoopbackTest
+      - name: Install dependencies
+        working-directory: app
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm rebuild esbuild
+      - name: Test appearance settings and recovery
+        working-directory: app
+        run: pnpm exec vitest run src/renderer/components/GlassAppearance.test.tsx src/renderer/components/GlassAppearance.live.test.tsx src/renderer/components/chat/split-message-bubbles.test.ts src/renderer/components/chat/Message.test.tsx src/renderer/packages/mcp/mobile-fetch.test.ts src/renderer/packages/mcp/oauth-provider.test.ts src/renderer/packages/mcp/controller.test.ts src/renderer/components/InputBox/AgentModePanel.test.tsx src/renderer/components/InputBox/agentModeState.test.ts src/renderer/adapters/CurrentPlatformCapabilities.test.ts src/renderer/components/InputBox/useModelToolCapabilities.test.tsx src/renderer/stores/session/__tests__/tools-builder.test.ts src/renderer/stores/session/agent-harness.test.ts packages/chatbox-core/src/generation/GenerationService.test.ts
+      - name: Test real code block materials in Chromium
+        working-directory: app
+        run: node scripts/ash-check-code-glass.mjs
+      - name: Build Android frontend
+        working-directory: app
+        env:
+          CHATBOX_BUILD_TARGET: mobile_app
+          CHATBOX_BUILD_PLATFORM: android
+        run: pnpm run build:renderer
+      - name: Generate native Android project
+        working-directory: app
+        run: |
+          pnpm exec cap add android
+          pnpm exec cap sync android
+          python3 ../chatbox/configure_android.py
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > android/local.properties
+          chmod +x android/gradlew
+      - name: Build test APK
+        working-directory: app/android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Preserve APK and source overlay
+        uses: actions/upload-artifact@v4
+        with:
+          name: Chatbox-Glass-Android
+          path: |
+            app/android/app/build/outputs/apk/debug/*.apk
+            chatbox/overlay/
+          retention-days: 30
+

@@ -12,7 +12,7 @@
 | 橘瓣 Liquid Glass 2.2.3 | ARM64 debug APK、对应完整源码 | [说明](archive/orangechat-glass-2.2.3/) · [附件](https://github.com/wanwamT/Ash-Workshop/releases/tag/orangechat-glass-2.2.3) |
 | 星语 · 任务群聊版 | 完整源码；暂未附 APK | [说明](archive/xingyu-task-group/) · [附件](https://github.com/wanwamT/Ash-Workshop/releases/tag/xingyu-task-group) |
 
-源码请下载各发布页专门命名的 **source.zip** 附件，内含完整工程与原许可证。橘瓣、星语旧版采用分段双重许可，含使用人数及商业授权等条件，转发与使用前请阅读原文。
+这三个项目的完整工程与原许可证已直接保存在 **projects/** 目录，可以在线查看或下载整个仓库。橘瓣 APK 链接见项目说明。橘瓣、星语旧版采用分段双重许可，含使用人数及商业授权等条件，转发与使用前请阅读原文。
 
 ## Kelivo Glass · 非官方玻璃改版
 

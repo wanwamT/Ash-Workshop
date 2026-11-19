@@ -5,5 +5,7 @@
   "license": "GPL-3.0",
   "status": "源码归档；暂不附未经核实的 APK。",
   "source_archive": "chatbox-glass-1.4.5-source.zip",
-  "source_sha256": "f4c7512fccc12a88f0de3193807c81103409de03775648cdb506157da9578abc"
+  "source_sha256": "f4c7512fccc12a88f0de3193807c81103409de03775648cdb506157da9578abc",
+  "source_directory": "projects/chatbox-glass-1.4.5",
+  "archive_note": "source_sha256 对应本地归档 ZIP；附件上传失败，公开交付以仓库完整源码目录为准。"
 }

@@ -5,5 +5,7 @@
   "license": "原版分段双重许可，见 source/LICENSE",
   "status": "源码归档；旧 Actions APK 附件下载被拒绝，暂不附 APK。",
   "source_archive": "xingyu-task-group-source.zip",
-  "source_sha256": "cd29e4a5335366285e2ac1806befa74a989c013fd627fd6c67ccb78ab871389f"
+  "source_sha256": "cd29e4a5335366285e2ac1806befa74a989c013fd627fd6c67ccb78ab871389f",
+  "source_directory": "projects/xingyu-task-group",
+  "archive_note": "source_sha256 对应本地归档 ZIP；附件上传失败，公开交付以仓库完整源码目录为准。"
 }

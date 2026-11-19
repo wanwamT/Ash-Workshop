@@ -14,6 +14,8 @@
 
 ## 验证范围
 
-本次为源码/已有产物归档，检查源码 ZIP 完整性、文件校验与明显凭据文件；未重新构建或在设备上重新做功能测试。GitHub 自动生成的 Source code 压缩包仅含分享仓库说明，请下载附件中专门命名的 source.zip 完整工程。
+本次为源码/已有产物归档，检查源码 ZIP 完整性、文件校验与明显凭据文件；未重新构建或在设备上重新做功能测试。完整源码已直接提交在本仓库 projects/orangechat-glass-2.2.3/，可在线查看或下载仓库 Source code 压缩包；无需访问私人仓库。
 
-[下载归档附件](https://github.com/wanwamT/Ash-Workshop/releases/tag/orangechat-glass-2.2.3)
+[查看完整源码](../../projects/orangechat-glass-2.2.3/)
+
+[下载原发布 ARM64 debug APK](https://github.com/wanwamT/orangechat/releases/download/liquidglass-build-20261014-150947/app-arm64-v8a-debug.apk)

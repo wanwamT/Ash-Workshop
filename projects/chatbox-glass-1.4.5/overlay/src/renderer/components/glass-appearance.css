@@ -1,0 +1,197 @@
+html[data-ash-enabled="true"] {
+  --ash-tint: #f7f5ff;
+  --ash-edge: rgba(255,255,255,.65);
+  --ash-shadow: 0 6px 20px rgba(65,45,100,.08);
+  --ash-wallpaper: radial-gradient(ellipse at 5% 5%,#e1d8f3,transparent 65%),radial-gradient(ellipse at 100% 70%,#d4e6ec,transparent 70%),#f4eff5;
+}
+html[data-ash-enabled="true"][data-mantine-color-scheme="dark"] {
+  --ash-tint: #202335;
+  --ash-edge: rgba(255,255,255,.16);
+  --ash-shadow: 0 6px 20px rgba(0,0,0,.16);
+  --ash-wallpaper: radial-gradient(ellipse at 5% 5%,#453954,transparent 65%),radial-gradient(ellipse at 100% 70%,#23414a,transparent 70%),#181b29;
+}
+html[data-ash-glass="true"] .App { background:var(--ash-wallpaper)!important; }
+html[data-ash-glass="true"] .ash-chat-panel { background:color-mix(in srgb,var(--ash-tint) var(--ash-main-opacity),transparent)!important; }
+html[data-ash-glass="true"] [data-ash-background-overlay] > :not(:first-child) { display:none; }
+html[data-ash-glass="true"] [data-ash-glass="header"],
+html[data-ash-glass="true"] [data-ash-glass="composer"],
+html[data-ash-glass="true"] [data-ash-glass="message"],
+html[data-ash-enabled="true"] [data-ash-glass="sidebar"] {
+  border:1px solid var(--ash-edge)!important;
+  border-radius:var(--ash-radius)!important;
+  box-shadow:var(--ash-shadow)!important;
+  backdrop-filter:blur(var(--ash-blur)) saturate(115%);
+  -webkit-backdrop-filter:blur(var(--ash-blur)) saturate(115%);
+}
+html[data-ash-enabled="true"]:is([data-ash-glass="true"],[data-ash-settings-active="true"]) [data-ash-glass="header"] {
+  background:color-mix(in srgb,var(--ash-tint) var(--ash-header-opacity),transparent)!important;
+  border:0!important;
+  border-bottom:1px solid var(--ash-header-edge)!important;
+  box-shadow:var(--ash-header-shadow)!important;
+  backdrop-filter:var(--ash-header-filter)!important;
+  -webkit-backdrop-filter:var(--ash-header-filter)!important;
+  border-radius:0!important;
+  color:var(--ash-interface-text)!important;
+}
+html[data-ash-glass="true"] [data-ash-glass="composer"] {
+  background:color-mix(in srgb,var(--ash-tint) var(--ash-composer-opacity),transparent)!important;
+  border-radius:calc(var(--ash-radius) + 4px)!important;
+  border-color:var(--ash-composer-edge)!important;
+  box-shadow:var(--ash-composer-shadow)!important;
+  backdrop-filter:var(--ash-composer-filter)!important;
+  -webkit-backdrop-filter:var(--ash-composer-filter)!important;
+  color:var(--ash-interface-text)!important;
+}
+html[data-ash-glass="true"] [data-ash-glass="composer"] :is(textarea,input) {
+  background:transparent!important;
+  color:var(--ash-interface-text)!important;
+}
+html[data-ash-enabled="true"]:is([data-ash-glass="true"],[data-ash-settings-active="true"]) [data-ash-glass="header"] :is(.mantine-Text-root,.mantine-Title-root),
+html[data-ash-enabled="true"] [data-ash-glass="sidebar"] .mantine-Text-root {
+  color:var(--ash-interface-text)!important;
+}
+html[data-ash-enabled="true"] [data-ash-glass="sidebar"] {
+  background:color-mix(in srgb,var(--ash-tint) 76%,transparent)!important;
+  border-radius:0!important;
+  color:var(--ash-interface-text)!important;
+}
+html[data-ash-enabled="true"][data-ash-sidebar-image="true"] [data-ash-glass="sidebar"] {
+  background-image:linear-gradient(color-mix(in srgb,var(--ash-tint) 48%,transparent),color-mix(in srgb,var(--ash-tint) 48%,transparent)),var(--ash-sidebar-image)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+html[data-ash-enabled="true"][data-ash-settings-image="true"] :is([data-ash-settings="surface"],.ash-settings-modal) {
+  background-image:linear-gradient(color-mix(in srgb,var(--ash-tint) 72%,transparent),color-mix(in srgb,var(--ash-tint) 72%,transparent)),var(--ash-settings-image)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+html[data-ash-enabled="true"][data-ash-settings-image="true"] .ash-settings-modal [data-ash-settings="surface"] {
+  background-image:none!important;
+}
+html[data-ash-glass="true"] [data-ash-glass="message"] {
+  background:color-mix(in srgb,var(--ash-assistant-color) var(--ash-assistant-opacity),transparent)!important;
+  color:var(--ash-assistant-text)!important;
+  padding:5px 12px;
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+}
+html[data-ash-glass="true"] [data-ash-glass="message"][data-ash-role="user"] {
+  background:color-mix(in srgb,var(--ash-user-color) var(--ash-user-opacity),transparent)!important;
+  color:var(--ash-user-text)!important;
+}
+html[data-ash-glass="true"] [data-ash-glass="message"] :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,strong,em) { color:inherit; }
+html[data-ash-glass="true"] .ash-bubble-column { max-width:var(--ash-bubble-width)!important; }
+html[data-ash-glass="true"] .ash-assistant-column { padding-right:0!important; }
+html[data-ash-glass="true"] [data-ash-glass="message"][data-ash-role="assistant"] { max-width:var(--ash-bubble-width)!important; }
+html[data-ash-glass="true"] [data-ash-split="true"] {
+  max-width:var(--ash-bubble-width)!important;
+  background:transparent!important;
+  border:0!important;
+  padding:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+html[data-ash-glass="true"] [data-ash-split="true"] > .msg-content { overflow:visible; }
+.ash-split-stream { display:flex; flex-direction:column; align-items:flex-start; gap:10px; min-width:0; }
+[data-ash-role="user"] .ash-split-stream { align-items:flex-end; }
+html[data-ash-glass="true"] .ash-split-stream > [data-ash-glass="message"] { width:fit-content; max-width:100%!important; }
+@media (max-width: 640px) {
+  html[data-ash-glass="true"] .msg-block { padding-inline:2px!important; }
+  html[data-ash-glass="true"] .ash-assistant-column > .MuiGrid-item { max-width:100%; }
+}
+
+html[data-ash-glass="true"] [data-ash-background-overlay] > :first-child { opacity:1!important; }
+html[data-ash-glass="true"] [data-ash-glass="message"] :is(p,ul,ol) { margin-block:.25em; }
+html[data-ash-glass="true"] [data-ash-glass="message"] :is(p,ul,ol):first-child { margin-top:0; }
+html[data-ash-glass="true"] [data-ash-glass="message"] :is(p,ul,ol):last-child { margin-bottom:0; }
+.ash-top-message-column { box-sizing:border-box; }
+html[data-ash-glass="true"] .ash-top-message-column > [data-ash-role] { max-width:var(--ash-bubble-width)!important; }
+
+/* Small chat surfaces share a configurable glass material instead of opaque theme fills. */
+html[data-ash-glass="true"] [data-ash-glass="control"] {
+  border-radius:var(--ash-radius)!important;
+  background:color-mix(in srgb,var(--ash-control-color) var(--ash-control-opacity),transparent)!important;
+  color:var(--ash-control-text)!important;
+  border:1px solid var(--ash-control-edge)!important;
+  box-shadow:var(--ash-control-shadow)!important;
+  backdrop-filter:var(--ash-control-filter);
+  -webkit-backdrop-filter:var(--ash-control-filter);
+}
+html[data-ash-glass="true"] [data-ash-glass="control"] :is(button,.mantine-Text-root,svg),
+html[data-ash-glass="true"] [data-ash-glass="control"] .mantine-Loader-root {
+  color:var(--ash-control-text)!important;
+  --loader-color:var(--ash-control-text);
+}
+html[data-ash-glass="true"] [data-ash-glass="control"] button { background:transparent!important; }
+html[data-ash-glass="true"] [data-ash-navigation="true"] { border-radius:0!important; }
+html[data-ash-glass="true"] [data-ash-glass="control"] :is(button:disabled,[data-disabled]) { opacity:.45; }
+html[data-ash-glass="true"] [data-ash-glass="control"]:disabled { opacity:.45; }
+
+/* Markdown tables retain cell borders and horizontal scrolling; syntax colors stay intact. */
+html[data-ash-glass="true"] .msg-block :is(table,.inline-code,.code-block-container) {
+  background:color-mix(in srgb,var(--ash-content-color) var(--ash-content-opacity),transparent)!important;
+  border-color:var(--ash-edge)!important;
+}
+html[data-ash-glass="true"] .msg-block table,
+html[data-ash-glass="true"] .msg-block .inline-code { color:inherit!important; }
+html[data-ash-glass="true"] .msg-block table :is(thead,tbody,tr,th,td) {
+  background:transparent!important;
+  color:inherit!important;
+  border-color:var(--ash-edge)!important;
+}
+html[data-ash-glass="true"] .msg-block .code-block-container :is(.code-block-header,.shiki-code-wrapper,.shiki-code-wrapper pre,.shiki-code-fallback pre,pre code) {
+  background:transparent!important;
+}
+
+
+
+/* Process surfaces cover the full timeline, including expanded thinking and tool details. */
+html[data-ash-glass="true"] [data-ash-glass="process"] {
+  background:color-mix(in srgb,var(--ash-process-color) var(--ash-process-opacity),transparent)!important;
+  color:var(--ash-process-text)!important;
+  border:1px solid var(--ash-edge)!important;
+  border-radius:var(--ash-radius)!important;
+  box-shadow:var(--ash-shadow)!important;
+  backdrop-filter:blur(var(--ash-process-blur)) saturate(115%);
+  -webkit-backdrop-filter:blur(var(--ash-process-blur)) saturate(115%);
+  padding:8px 12px;
+  margin-block:6px;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+  --chatbox-tint-primary:var(--ash-process-text);
+  --chatbox-tint-secondary:var(--ash-process-text);
+  --chatbox-tint-tertiary:var(--ash-process-text);
+}
+html[data-ash-glass="true"] [data-ash-glass="process"] :is(.mantine-Text-root,p,li,h1,h2,h3,h4,h5,h6,blockquote,strong,em) {
+  color:var(--ash-process-text)!important;
+}
+html[data-ash-glass="true"] [data-ash-glass="process"] > :first-child { margin-top:0; }
+html[data-ash-glass="true"] [data-ash-glass="process"] > :last-child { margin-bottom:0; }
+
+/* Expanded tool cards must not mask the configurable outer process material. */
+html[data-ash-glass="true"] [data-ash-glass="process"] :is([data-ash-process-detail],.mantine-Code-root) {
+  background:transparent!important;
+}
+
+html[data-ash-glass="true"] [data-ash-glass="process"] .mantine-Code-root { color:var(--ash-process-text)!important; }
+
+
+/* Paint settings once, including the App padding behind mobile system bars.
+   Children and the settings header then share that same background. */
+html[data-ash-enabled="true"][data-ash-settings-active="true"] .App {
+  background:var(--ash-wallpaper)!important;
+}
+html[data-ash-enabled="true"][data-ash-settings-active="true"][data-ash-settings-image="true"] :is(.App,.ash-settings-modal) {
+  background-image:linear-gradient(color-mix(in srgb,var(--ash-tint) 72%,transparent),color-mix(in srgb,var(--ash-tint) 72%,transparent)),var(--ash-settings-image)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+html[data-ash-enabled="true"][data-ash-settings-active="true"] :is(.ash-chat-panel,[data-ash-settings="surface"]) {
+  background:transparent!important;
+}
