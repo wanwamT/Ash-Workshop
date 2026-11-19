@@ -1,0 +1,59 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { Session } from './fixtures/dsh-session-host.mjs'
+import { appendSessionEvent } from "../tavern-plugin/lib/domain/session-events.js"
+
+import { inspectStoryAlignment, nativeStoryTurns } from '../tavern-plugin/lib/domain/story-alignment.js'
+import { reshadowRolledBackRounds } from '../tavern-plugin/lib/domain/rollback-surface.js'
+
+const input = (id, rpcId) => ({ id, role: 'user', content: [{ type: 'text', text: id }], source: { kind: 'user', rpcId } })
+const reply = (id, turn) => ({ turn, step: 1, message: { id, role: 'assistant', content: [{ type: 'text', text: id }], source: { kind: 'model', provider: 'test', model: 'test' } } })
+function game() {
+  const session = Session.create('alignment')
+  appendSessionEvent(session, 'assistant/message', reply('tavern-opening:x', 1), { surfaceOp: 'append' })
+  const round = (turn, reason = 'completed') => {
+    appendSessionEvent(session, 'turn/start', { turn })
+    const user = appendSessionEvent(session, 'user/message', input('in-' + turn, 'rpc-' + turn), { surfaceOp: 'append' })
+    const out = appendSessionEvent(session, 'assistant/message', reply('out-' + turn, turn), { surfaceOp: 'append' })
+    appendSessionEvent(session, 'turn/end', { turn, reason: { kind: reason } })
+    return { user, out }
+  }
+  return { session, round }
+}
+
+test('存档漏了一轮：可补记；回退没传到模型上下文：可重新隐藏；其余不一致只报告', () => {
+  const { session, round } = game()
+  round(2); round(3)
+  const missing = inspectStoryAlignment({ session, header: { nativeCommits: { 2: {} } }, storyTurns: [2] })
+  assert.equal(missing.aligned, false)
+  assert.deepEqual(missing.adopt.map(item => item.turn), [3])
+  assert.equal(missing.state, 'ok')
+
+  const lost = inspectStoryAlignment({ session, header: { nativeCommits: { 2: {} }, suppressedDshTurns: [3] }, storyTurns: [2] })
+  assert.deepEqual(lost.rolledBackVisible, [3])
+  assert.deepEqual(lost.adopt, [], 'a rolled-back round is never adopted back')
+  assert.deepEqual(reshadowRolledBackRounds(session, new Set(lost.rolledBackVisible)), [3])
+  assert.deepEqual(nativeStoryTurns(session), [2])
+  assert.equal(inspectStoryAlignment({ session, header: { nativeCommits: { 2: {} }, suppressedDshTurns: [3] }, storyTurns: [2] }).aligned, true)
+  assert.deepEqual(reshadowRolledBackRounds(session, new Set([3])), [], 'repeating is a no-op')
+
+  const strange = inspectStoryAlignment({ session, header: { nativeCommits: { 2: {} } }, storyTurns: [2, 9] })
+  assert.equal(strange.state, 'mismatch')
+  assert.deepEqual(strange.mismatch, { native: [2], story: [2, 9] })
+  assert.equal(inspectStoryAlignment({ session, header: { regenInProgress: true }, storyTurns: [2] }).state, 'regenerating')
+})
+
+test('只有模型回复的回合结束后才对账：回退、撤销回退、编辑这类 Tavern 自己的回合不触发', async () => {
+  const { turnRepliedByModel } = await import('../tavern-plugin/lib/domain/story-alignment.js')
+  const model = { kind: 'model', provider: 'fixture', model: 'fixture' }
+  const reply = (seq, turn, source, surfaceOp = 'append', text = '正文') => ({ seq, type: 'assistant/message', surfaceOp, data: { turn, step: 1, message: { role: 'assistant', content: [{ type: 'text', text }], source } } })
+  const start = (seq, turn) => ({ seq, type: 'turn/start', data: { turn } })
+  const events = [
+    start(0, 2), reply(1, 2, model),
+    start(2, 3), reply(3, 3, { kind: 'model', provider: 'dsh-tavern', model: 'body-edit', tavernStoryTurn: 2 }, { op: 'replace', startSeq: 1, endSeq: 1 }),
+    start(4, 4), { seq: 5, type: 'user/message', surfaceOp: 'append', data: { role: 'user', content: [], source: { kind: 'plugin:dsh-tavern-surface-restore' } } },
+    start(6, 5), reply(7, 5, { ...model, tavernStoryTurn: 2 }),
+    start(8, 6), reply(9, 6, model, 'append', '')
+  ]
+  assert.deepEqual([2, 3, 4, 5, 6].map(turn => turnRepliedByModel(events, turn)), [true, false, false, false, false])
+})

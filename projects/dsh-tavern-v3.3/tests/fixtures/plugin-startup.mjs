@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict'
+import { createPluginHost } from './plugin-host.mjs'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { createChatJournalStore } from '../../tavern-plugin/lib/domain/chat-journal-store.js'
+import { resolveTavernDataRoot } from '../../tavern-plugin/lib/domain/tavern-data.js'
+
+const root = resolveTavernDataRoot()
+const card = { name: 'Stage test', first_mes: 'A quiet room.', extensions: {} }
+await mkdir(root, { recursive: true })
+await writeFile(join(root, 'sessions.json'), JSON.stringify({ 'stage-session': 'stage-chat' }))
+await createChatJournalStore({ dataRoot: root }).update('stage-chat', () => ({
+  id: 'stage-chat', _storageRevision: 1, sessionId: 'stage-session', mode: 'story', cardPath: 'cards/stage-test.json',
+  backgroundConfigVersion: 1, conversationFeaturesVersion: 1, cardDefinitionSnapshot: card,
+  timeline: { branchId: 'test-branch', revision: 0 },
+  messages: [{ role: 'assistant', turn: 1, text: 'A quiet room.', sourceText: 'A quiet room.' }]
+}))
+const host = await createPluginHost({ withTools: true })
+try {
+  const imported = await host.rpc('importCard', { payload: { name: 'stage-test.json', text: JSON.stringify({ spec: 'chara_card_v2', spec_version: '2.0', data: card }) } })
+  await createChatJournalStore({ dataRoot: root }).update('stage-chat', chat => ({ ...chat, _storageRevision: 2, cardPath: imported.card.path }))
+  assert.equal(typeof host.services.get('tavernSessionSignals')?.control, 'function')
+  assert.ok(host.events.has('system-prompt/assemble'), 'apply must reach final registrations')
+  assert.equal(host.registeredTools.has('worldbook_search'), false, 'upstream native worldbook skills do not restore the retired search tool')
+  for (const name of ['tavern_test_response', 'tavern_recall_history', 'tavern_user_profile_read',
+    'tavern_read_skill_reference', 'tavern_read_variables',
+    'tavern_copy_card', 'tavern_set_card_cover', 'tavern_export_card_png', 'tavern_memory_search', 'tavern_validate_card', 'tavern_read_play_chat',
+    'tavern_read_script', 'tavern_read_worldbook', 'tavern_update_preset', 'tavern_read_regex_library', 'tavern_restore_card',
+    'submit_story', 'tavern_generate_body']) {
+    assert.equal(typeof host.registeredTools.get(name)?.execute, 'function', name + ' registered')
+  }
+  for (const name of ['tavern_assets_read', 'tavern_assets_patch', 'tavern_media_upload', 'tavern_assets_transfer', 'tavern_stage_read', 'tavern_stage_patch', 'tavern_mods_read', 'tavern_mods_patch', 'tavern_voice_read', 'tavern_voice_patch', 'tavern_asset_generation']) {
+    assert.equal(typeof host.registeredTools.get(name)?.execute, 'function', name + ' registered by the stage')
+  }
+  const tavern = host.services.get('tavern')
+  assert.equal(tavern?.apiVersion, 7, 'public plugin service provided')
+  const plugin = Object.create(tavern)
+  plugin.ctx = { fiber: { name: 'mode-smoke' } }
+  const unregister = plugin.gameMode({ name: 'counter', version: 1,
+    create: () => ({ state: { count: 0, secret: 'private' } }),
+    advance: ({ state }) => ({ state: { ...state, count: state.count + 1 } }),
+    project: ({ state }) => ({ count: state.count }) })
+  const modeArgs = { sessionId: 'stage-session' }
+  assert.equal((await host.rpc('gameMode', { ...modeArgs, op: 'list' })).modes[0].key, 'mode-smoke:counter')
+  assert.deepEqual((await host.rpc('gameMode', { ...modeArgs, op: 'create', key: 'mode-smoke:counter' })).mode.data, { count: 0 })
+  assert.equal((await host.rpc('gameMode', { ...modeArgs, op: 'advance', revision: 1 })).mode.data.count, 1)
+  assert.equal((await host.rpc('gameMode', { ...modeArgs, op: 'seek', revision: 2, cursor: 0 })).mode.data.count, 0)
+  unregister()
+  assert.deepEqual((await host.rpc('pluginMediaTurns', { sessionId: 'missing-game' })).turns, [])
+  assert.deepEqual((await host.rpc('pluginMediaForTurn', { sessionId: 'missing-game', turn: 1 })).items, [])
+  assert.equal((await host.rpc('getLive2dRuntime', {})).installed, false, 'the stage registers the Live2D runtime; a fresh data directory has none')
+  assert.ok((await host.rpc('getTavernSettings', {})).settings)
+  assert.deepEqual((await host.rpc('bodyGenerationProviders', {})).providers, [])
+  assert.equal(typeof tavern.bodyGenerator, 'function')
+  assert.deepEqual((await host.rpc('getFrameStorage', {})).values, {})
+  assert.ok(await host.rpc('listCards', {}))
+  host.services.get('sessions').set('stage-session', { id: 'stage-session', events: [] })
+  const signalsAbort = new AbortController()
+  const signals = host.services.get('tavernSessionSignals').follow(['stage-session'], signalsAbort.signal)
+  const identityPlugin = Object.assign(Object.create(tavern), { ctx: { fiber: { name: 'identity-test-plugin' } } })
+  try {
+    await signals.next()
+    assert.equal((await host.rpc('getSession', { sessionId: 'stage-session' })).view.playerName, '你')
+    const nextSignal = signals.next()
+    const timeout = setTimeout(() => signalsAbort.abort(), 5000)
+    try {
+      assert.equal(await identityPlugin.setPlayerName({ gameId: 'stage-session', playerName: '旅人' }), '旅人')
+      let update = await nextSignal
+      while (!update.done && !update.value.signal.version.startsWith('player-name:')) update = await signals.next()
+      assert.equal(update.done, false, 'plugin writes must wake the session view without a restart')
+      assert.equal(update.value.signal.kind, 'tavern-state')
+      assert.ok(update.value.signal.version.startsWith('player-name:'))
+      assert.equal((await host.rpc('getSession', { sessionId: 'stage-session' })).view.playerName, '旅人')
+      assert.equal(await identityPlugin.getPlayerName({ gameId: 'stage-session' }), '旅人')
+    } finally { clearTimeout(timeout) }
+  } finally {
+    signalsAbort.abort()
+    await signals.return()
+  }
+  const bubbles = await host.rpc('getDialogueBubbles', { sessionId: 'stage-session' })
+  assert.equal(bubbles.cardPath, imported.card.path)
+  assert.ok(bubbles.config)
+  const direction = await host.rpc('getStageDirection', { sessionId: 'stage-session', turn: 1, readOnly: true })
+  assert.equal(typeof direction.status, 'string')
+  const modRpc = (method, args) => host.rpc(method, args, { origin: 'http://localhost:3081' })
+  const mods = await modRpc('managedModsList', {})
+  assert.equal(mods.mods.length, 4)
+  assert.ok(mods.mods.every(mod => mod.switches.global === false && mod.switches.effective === false))
+  const plan = await modRpc('managedModSwitchPlan', { revision: mods.revision, kind: 'mod', scope: 'global', id: 'dsh.dice', value: true })
+  await modRpc('managedModApply', { token: plan.token, revision: plan.revision, answers: {} })
+  const enabled = await modRpc('managedModsList', {})
+  assert.deepEqual(enabled.mods.filter(mod => mod.switches.effective).map(mod => mod.id), ['dsh.dice'])
+  console.log('plugin apply completed')
+} finally { await host.dispose() }

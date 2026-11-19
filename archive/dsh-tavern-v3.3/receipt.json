@@ -1,0 +1,14 @@
+{
+  "project": "DSH Tavern",
+  "upstream": "https://github.com/flizzywine/dsh-tavern",
+  "tag": "v3.3",
+  "commit": "09a66711abaa7a02f3626f0fb04023cf3b11b418",
+  "source_directory": "projects/dsh-tavern-v3.3",
+  "modified": false,
+  "tracked_file_count": 3725,
+  "file_manifest_sha256": "58c8aacb6d1bc83584cdafafc0a7da236e3b95c213bf3079399b322eb04c22ad",
+  "license": "AGPL-3.0",
+  "official_apk": "https://github.com/flizzywine/dsh-tavern/releases/download/v3.3/dsh-tavern-android-release.apk",
+  "official_release": "https://github.com/flizzywine/dsh-tavern/releases/tag/v3.3",
+  "validation": "All tracked files copied byte-for-byte; no rebuild or device test performed."
+}

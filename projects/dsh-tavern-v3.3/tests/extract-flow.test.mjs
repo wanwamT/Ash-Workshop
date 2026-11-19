@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import test from 'node:test'
+
+const openingSource = await readFile(new URL('../tavern-plugin/lib/rpc/opening.js', import.meta.url), 'utf8')
+
+function between(source, start, end) {
+  const from = source.indexOf(start)
+  const to = source.indexOf(end, from)
+  assert.notEqual(from, -1, `missing start marker: ${start}`)
+  assert.notEqual(to, -1, `missing end marker: ${end}`)
+  return source.slice(from, to)
+}
+
+test('创建对话失败时服务端记录请求边界但不记录开场白正文', () => {
+  const dispatch = between(openingSource, 'async startChat(', '\n    },')
+
+  assert.match(dispatch, /console\.error\('dsh-tavern: 创建对话失败'/)
+  assert.match(dispatch, /cardPath: str\(args && args\.path\)/)
+  assert.match(dispatch, /openingId: str\(args && args\.openingId\)/)
+  assert.doesNotMatch(dispatch, /greeting|openingText/)
+})

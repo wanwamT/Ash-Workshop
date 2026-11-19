@@ -1,0 +1,85 @@
+name: Publish runtime manifest
+
+on:
+  push:
+    branches: [main, stable]
+    paths-ignore:
+      - dsh-tavern-runtime.json
+      - 'website/**'
+      - 'docs/**'
+      - '**/*.md'
+      - bin/build-website.mjs
+      - bin/sync-wiki-references.mjs
+      - .github/workflows/publish-website.yml
+  # 手动重发：分支被回退或清单指向的提交已下线时，按当前 HEAD 重建并重新发布。
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-runtime-manifest-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build immutable runtime manifest
+        shell: bash
+        run: |
+          git fetch origin "$GITHUB_REF_NAME"
+          git checkout "$GITHUB_REF_NAME"
+          git pull --ff-only origin "$GITHUB_REF_NAME"
+          node .github/scripts/write-runtime-manifest.mjs "$(git rev-parse HEAD)" "${{ github.run_number }}"
+      # Publish a small CDN tree: an immutable ZIP commit, followed by a commit
+      # containing matching installers and metadata. Source branches exceed CDN limits.
+      - name: Publish runtime archive
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          archive="$RUNNER_TEMP/runtime.zip"
+          rm -f "$archive"
+          node -e "for (const file of require('./dsh-tavern-runtime.json').files) console.log(file.path)" | zip -X -9 -q -D "$archive" -@
+          # Fail before publishing an oversized archive (jsDelivr per-file limit).
+          node .github/scripts/check-runtime-archive.mjs "$archive"
+          dist="runtime-archive-${GITHUB_REF_NAME}"
+          git worktree add --detach "$RUNNER_TEMP/dist"
+          (
+            cd "$RUNNER_TEMP/dist"
+            git checkout -q --orphan "$dist"
+            git rm -rfq .
+            cp "$archive" runtime.zip
+            git add runtime.zip
+            git commit -qm "runtime archive for $(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+            git rev-parse HEAD > "$RUNNER_TEMP/archive-commit"
+          )
+          node .github/scripts/attach-runtime-archive.mjs "$(cat "$RUNNER_TEMP/archive-commit")" "$archive"
+          node .github/scripts/stage-cdn-entrypoints.mjs "$RUNNER_TEMP/dist"
+          (
+            cd "$RUNNER_TEMP/dist"
+            git add install.ps1 install.sh android/setup.sh dsh-tavern-runtime.json
+            git commit -qm "CDN entry points for $(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+            git push -q --force origin "HEAD:refs/heads/$dist"
+          )
+          git worktree remove --force "$RUNNER_TEMP/dist"
+          ls -l "$archive"
+      - name: Commit manifest
+        shell: bash
+        run: |
+          git add dsh-tavern-runtime.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: publish runtime manifest [skip ci]"
+          git push origin "$GITHUB_REF_NAME"
+      # jsDelivr caches branch aliases for up to 12h, while installers download code at the
+      # manifest's pinned revision. A stale install.ps1/install.sh paired with new
+      # files fails ("安装文件不完整"), so refresh the mutable entry points on every
+      # publish. Verify the small distribution branch, not the oversized source branch.
+      - name: Refresh and check jsDelivr caches
+        shell: bash
+        run: |
+          node .github/scripts/refresh-cdn.mjs --best-effort
