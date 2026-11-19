@@ -1,0 +1,37 @@
+name: Share verified Xingyu APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download original successful build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/wanwamT/orangechat/actions/artifacts/11938400350/zip > original.zip
+      - name: Select APK matching installed Xingyu
+        run: |
+          python3 - <<'PY'
+          import zipfile,hashlib,pathlib,json
+          expected='4425525da15d79a26d33be13ea337ab924eacbf84fcc60337a416d550bdaa86b'
+          with zipfile.ZipFile('original.zip') as z:
+              for name in z.namelist():
+                  if name.endswith('.apk'):
+                      data=z.read(name)
+                      if hashlib.sha256(data).hexdigest()==expected:
+                          pathlib.Path('xingyu-2.2.3-arm64.apk').write_bytes(data)
+                          break
+              else:
+                  raise SystemExit('No APK matches installed Xingyu checksum')
+          pathlib.Path('xingyu-2.2.3-arm64.apk.sha256').write_text(expected+'  xingyu-2.2.3-arm64.apk\n')
+          print('Verified installed APK equals original successful build artifact')
+          PY
+      - name: Publish APK with existing corresponding source release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload xingyu-task-group xingyu-2.2.3-arm64.apk xingyu-2.2.3-arm64.apk.sha256 --repo wanwamT/Ash-Workshop --clobber
